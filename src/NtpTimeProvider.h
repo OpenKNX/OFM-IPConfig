@@ -1,6 +1,8 @@
 #pragma once
 #include "OpenKNX.h"
-#ifdef NET_USE_NTP
+#include "knxprod.h"
+
+#ifdef ParamNET_NTP
 class NtpTimeProvider : public OpenKNX::Time::TimeProvider
 {
         static NtpTimeProvider* currentInstance;
