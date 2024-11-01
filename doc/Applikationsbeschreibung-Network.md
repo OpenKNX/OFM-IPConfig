@@ -64,27 +64,14 @@ Unter Zeitgeber können Zeit-Server aus dem Internet konfiguriert werden.
 Uhrzeit und Datum kann je nach Konfiguration auch auf dem Bus zur Verfügung gestellt werden.
 In einem KNX Netz sollte sich ein Zeitgeber befinden.
 
-<!-- DOC HelpContext="Zeitserver" -->
-### Zeitserver (1-3)
+<!-- DOC -->
+### NTP Server
 
-Zeitserver von dem die Uhrzeit abgerufen wird.
+Gibt den Zeitserver (NTP) an, von dem die Uhrzeit abgerufen wird.
+Meist wird ein Pool aus Zeitservern verwendet.
+Der DNS liefert einer der IP Adressen des Pools aus.
 
-Beispiele sind:
-
-#### Europa
-- 0.europe.pool.ntp.org
-- 1.europe.pool.ntp.org
-- 2.europe.pool.ntp.org
-
-#### Deutschland
-- 0.de.pool.ntp.org
-- 1.de.pool.ntp.org
-- 2.de.pool.ntp.org
-
-#### Österreich
-- 0.at.pool.ntp.org
-- 1.at.pool.ntp.org
-- 2.at.pool.ntp.org
+Beispiel: pool.ntp.org
 
 Weiter Informationen und freie Verfügbare Zeitserver sind auf der Website https://www.ntppool.org zu finden.
 

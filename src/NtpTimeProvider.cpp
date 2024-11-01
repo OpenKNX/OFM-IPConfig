@@ -21,12 +21,16 @@ void NtpTimeProvider::logInformation()
             break;
     }
     bool serverFound = false;
-    for (size_t i = 0; const char* serverName = sntp_getservername(i); i++)
+    bool reachable = false;
+    for (size_t i = 0; sntp_getservername(i); i++)
     {
+        if ((int)sntp_getreachability(i))
+            reachable = true;
         serverFound = true;
-        logInfoP("NTP Server %s: %d %s", serverName, (int)sntp_getreachability(i), sntp_getreachability(i) == 0 ? "not reachable or not used" : "reachable");
     }
-    if (!serverFound)
+    if (serverFound)
+        logInfoP("NTP Server %s: %s", ParamNET_NTPServer, reachable  ? "not reachable or not used" : "reachable");
+    else
         logErrorP("No NTP server configured");
 }
 
@@ -39,12 +43,13 @@ void NtpTimeProvider::setup()
 {
     sntp_stop();
     u8_t index = 0;
-    if (strlen((const char*)ParamNET_NTPServer1) > 0)
-        sntp_setservername(index++, (const char*)ParamNET_NTPServer1);
-    if (strlen((const char*)ParamNET_NTPServer2) > 0)
-        sntp_setservername(index++, (const char*)ParamNET_NTPServer2);
-    if (strlen((const char*)ParamNET_NTPServer3) > 0)
-        sntp_setservername(index++, (const char*)ParamNET_NTPServer3);
+    if (strlen((const char*)ParamNET_NTPServer) > 0)
+    {
+        // Configure the NTP server 3 times because the DNS should be queried multible times to return differnt IP addresses
+        sntp_setservername(index++, (const char*)ParamNET_NTPServer);
+        sntp_setservername(index++, (const char*)ParamNET_NTPServer);
+        sntp_setservername(index++, (const char*)ParamNET_NTPServer);
+    }
     if (index > 0)
     {
         currentInstance = this;

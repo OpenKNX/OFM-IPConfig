@@ -51,7 +51,7 @@
                 </TypeRestriction>
               </ParameterType>
               <ParameterType Id="%AID%_PT-NTPServer" Name="NTPServer">
-                <TypeText SizeInBit="280" /> <!-- 35 bytes -->
+                <TypeText SizeInBit="400" /> <!-- 50 bytes -->
               </ParameterType>
             </ParameterTypes>
             <Parameters>
@@ -100,14 +100,10 @@
               </Union>
 
               <!-- NTP -->
-              <Union SizeInBit="864">
+              <Union SizeInBit="408">
                 <Memory CodeSegment="%MID%" Offset="60" BitOffset="0" />
-                <Parameter Id="%AID%_UP-%TT%00061" Name="NTPServer1"        ParameterType="%AID%_PT-NTPServer"     Offset="0"  BitOffset="0" Text="NTP Server 1" Value="0.europe.pool.ntp.org" />
-                <!-- 35 characters + 0 terminator = 36 bytes used -->
-                <Parameter Id="%AID%_UP-%TT%00062" Name="NTPServer2"        ParameterType="%AID%_PT-NTPServer"     Offset="36" BitOffset="0" Text="NTP Server 2" Value="1.europe.pool.ntp.org" />
-                <!-- 35 characters + 0 terminator = 36 bytes used -->
-                <Parameter Id="%AID%_UP-%TT%00063" Name="NTPServer3"        ParameterType="%AID%_PT-NTPServer"     Offset="72" BitOffset="0" Text="NTP Server 3" Value="2.europe.pool.ntp.org" />
-                <!-- 35 characters + 0 terminator = 36 bytes used -->
+                <Parameter Id="%AID%_UP-%TT%00061" Name="NTPServer"        ParameterType="%AID%_PT-NTPServer"     Offset="0"  BitOffset="0" Text="NTP Server" Value="pool.ntp.org" />
+                <!-- 50 characters + 0 terminator = 51 bytes used -->
               </Union>
 
             </Parameters>
@@ -126,12 +122,8 @@
               <ParameterRef Id="%AID%_UP-%TT%00032_R-%TT%0003201" RefId="%AID%_UP-%TT%00032" />
               <ParameterRef Id="%AID%_UP-%TT%00033_R-%TT%0003301" RefId="%AID%_UP-%TT%00033" />
               <ParameterRef Id="%AID%_UP-%TT%00052_R-%TT%0005201" RefId="%AID%_UP-%TT%00052" />
-              <!-- NTPServer1 -->
+              <!-- NTPServer -->
               <ParameterRef Id="%AID%_UP-%TT%00061_R-%TT%0006101" RefId="%AID%_UP-%TT%00061" />
-              <!-- NTPServer2 -->
-              <ParameterRef Id="%AID%_UP-%TT%00062_R-%TT%0006201" RefId="%AID%_UP-%TT%00062" />
-              <!-- NTPServer3 -->
-              <ParameterRef Id="%AID%_UP-%TT%00063_R-%TT%0006301" RefId="%AID%_UP-%TT%00063" />
             </ParameterRefs>
             <ComObjectTable>
             </ComObjectTable>
@@ -184,10 +176,10 @@
                     <ParameterRefRef RefId="%AID%_UP-%TT%00033_R-%TT%0003301" IndentLevel="1" />
                     <choose ParamRefId="%AID%_UP-%TT%00033_R-%TT%0003301">
                       <when test="0">
-                        <Assign TargetParamRefRef="%AID%_P-1000010_R-100001001" Value="0" />
+                        <Assign TargetParamRefRef="%AID%_UP-1000163_R-100016301" Value="0" />
                       </when>
                       <when test="1">
-                        <Assign TargetParamRefRef="%AID%_P-1000010_R-100001001" Value="1" />
+                        <Assign TargetParamRefRef="%AID%_UP-1000163_R-100016301" Value="1" />
                       </when>
                     </choose>
                   </when>
@@ -224,12 +216,8 @@
                 <when test="1">
                   <ParameterBlock Id="%AID%_PB-nnn" Name="NTP" Text="Zeitgeber" Icon="clock-outline" HelpContext="NET-Zeitgeber">
                     <ParameterSeparator Id="%AID%_PS-nnn" Text="Zeitgeber (NTP)" UIHint="Headline" />
-                    <!-- NTPServer1 -->
-                    <ParameterRefRef RefId="%AID%_UP-%TT%00061_R-%TT%0006101" IndentLevel="1" HelpContext="NET-Zeitserver" />
-                    <!-- NTPServer2 -->
-                    <ParameterRefRef RefId="%AID%_UP-%TT%00062_R-%TT%0006201" IndentLevel="1" HelpContext="NET-Zeitserver" />
-                    <!-- NTPServer3 -->
-                    <ParameterRefRef RefId="%AID%_UP-%TT%00063_R-%TT%0006301" IndentLevel="1" HelpContext="NET-Zeitserver" />
+                    <!-- NTPServer -->
+                    <ParameterRefRef RefId="%AID%_UP-%TT%00061_R-%TT%0006101" IndentLevel="1" HelpContext="%DOC%" />
                   </ParameterBlock>
                 </when>
               </choose>
