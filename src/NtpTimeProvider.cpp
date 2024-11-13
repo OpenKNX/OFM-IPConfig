@@ -29,7 +29,7 @@ void NtpTimeProvider::logInformation()
         serverFound = true;
     }
     if (serverFound)
-        logInfoP("NTP Server %s: %s", ParamNET_NTPServer, reachable  ? "not reachable or not used" : "reachable");
+        logInfoP("NTP Server %s: %s", ParamNET_NTPServer, reachable  ? "reachable" : "not reachable or not used" );
     else
         logErrorP("No NTP server configured");
 }
