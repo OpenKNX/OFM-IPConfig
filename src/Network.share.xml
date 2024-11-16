@@ -5,7 +5,7 @@
   <op:config name="%NET_IPConfigTool%" value="0" />
   <op:config name="%NET_WifiTool%" value="0" />
   <op:config name="%NET_LanMode%" value="0" />
-  <op:config name="%NET_ServiceNTP%" value="0" />
+  <op:config name="%NET_ServiceNTP%" value="1" />
 
   <!-- Prepare: Not ready to use -->
   <op:config name="%NET_ServiceHTTP%" value="0" />
