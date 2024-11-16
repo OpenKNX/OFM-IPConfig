@@ -19,7 +19,7 @@ In diesem Eingabeformular kannst du entscheiden, ob die IP-Adresse dynamisch dur
 <!-- DOC -->
 ### Services
 
-<!-- DOC -->
+<!-- DOC HelpContext="mDNS-Service" -->
 ### mDNS
 
 Der mDNS Service ermöglicht das Auflösen von "Hostname.local" und kann auch später zum Auffinden von OpenKNX-Geräten im eigenen Netzwerk genutzt werden.
