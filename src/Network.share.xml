@@ -161,7 +161,7 @@
                 </choose>
 
                 <ParameterSeparator Id="%AID%_PS-nnn" Text="Services" UIHint="Headline" />
-                <ParameterRefRef RefId="%AID%_UP-%TT%00031_R-%TT%0003101" IndentLevel="1" HelpContext="%DOC%" />
+                <ParameterRefRef RefId="%AID%_UP-%TT%00031_R-%TT%0003101" IndentLevel="1" HelpContext="NET-mDNS-Service" />
                 
                 <!-- HTTP -->
                 <choose ParamRefId="%AID%_P-%TT%01000_R-%TT%0100000">
@@ -176,10 +176,10 @@
                     <ParameterRefRef RefId="%AID%_UP-%TT%00033_R-%TT%0003301" IndentLevel="1" />
                     <choose ParamRefId="%AID%_UP-%TT%00033_R-%TT%0003301">
                       <when test="0">
-                        <Assign TargetParamRefRef="%AID%_UP-1000163_R-100016301" Value="0" />
+                        <Assign TargetParamRefRef="%AID%_UP-1000006_R-100000601" Value="0" />
                       </when>
                       <when test="1">
-                        <Assign TargetParamRefRef="%AID%_UP-1000163_R-100016301" Value="1" />
+                        <Assign TargetParamRefRef="%AID%_UP-1000006_R-100000601" Value="1" />
                       </when>
                     </choose>
                   </when>
