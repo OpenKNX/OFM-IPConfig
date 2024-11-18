@@ -1,7 +1,8 @@
 #include "NtpTimeProvider.h"
-#ifdef ParamNET_NTP
-    #include "lwip/apps/sntp.h"
-    #include <esp_sntp.h>
+#ifdef NET_ServiceNTP_1
+    #ifdef ARDUINO_ARCH_ESP32
+        #include "lwip/apps/sntp.h"
+        #include <esp_sntp.h>
 
 NtpTimeProvider* NtpTimeProvider::currentInstance = nullptr;
 
@@ -29,7 +30,7 @@ void NtpTimeProvider::logInformation()
         serverFound = true;
     }
     if (serverFound)
-        logInfoP("NTP Server %s: %s", ParamNET_NTPServer, reachable  ? "reachable" : "not reachable or not used" );
+        logInfoP("NTP Server %s: %s", ParamNET_NTPServer, reachable ? "reachable" : "not reachable or not used");
     else
         logErrorP("No NTP server configured");
 }
@@ -72,4 +73,7 @@ NtpTimeProvider::~NtpTimeProvider()
     currentInstance = nullptr;
 }
 
+    #else
+        #error "NTP is only supported on ESP32. Use <op:config name="%NET_ServiceNTP%" value="0" in the application .xml for other platforms to disable NTP."
+    #endif
 #endif

@@ -2,7 +2,7 @@
 #include "OpenKNX.h"
 #include "knxprod.h"
 
-#ifdef ParamNET_NTP
+#ifdef NET_ServiceNTP_1
 class NtpTimeProvider : public OpenKNX::Time::TimeProvider
 {
         static NtpTimeProvider* currentInstance;

@@ -267,7 +267,7 @@ void NetworkModule::setup(bool configured)
     #if defined(ARDUINO_ARCH_RP2040)
         registerCallback([this](bool state) { if (state) MDNS.notifyAPChange(); });
     #endif
-#ifdef ParamNET_NTP
+#ifdef NET_ServiceNTP_1
     if (ParamNET_NTP)
         openknx.time.setTimeProvider(new NtpTimeProvider());
 #endif

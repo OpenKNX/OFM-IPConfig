@@ -59,7 +59,7 @@
               <Parameter Id="%AID%_P-%TT%01000" Name="SelectHelper"          ParameterType="%AID%_PT-ValueDpt5"         Text=""        Value="0" Access="None" />
               <Parameter Id="%AID%_P-%TT%01001" Name="WifiSSID"              ParameterType="%AID%_PT-WifiSSID"          Text="SSID"    Value="" />
               <Parameter Id="%AID%_P-%TT%01002" Name="WifiPassword"          ParameterType="%AID%_PT-WifiPassword"      Text="PSK"     Value=""/>
-
+            
               <!-- IP Config -->
               <Union SizeInBit="128"><!-- 16bytes-->
                 <Memory CodeSegment="%MID%" Offset="0" BitOffset="0" />
@@ -73,6 +73,9 @@
               <!-- 1bit options -->
               <Union SizeInBit="8">
                 <Memory CodeSegment="%MID%" Offset="16" BitOffset="0" />
+                <!-- Dummy parameter to create define dependig on config %NET_ServiceNTP% -->
+                <Parameter Id="%AID%_UP-%TT%00000" Name="ServiceNTP_%NET_ServiceNTP%"      ParameterType="%AID%_PT-OnOffYesNo"  Offset="0" BitOffset="0" Text="NetServciceNTP" Value="0"/>
+                
                 <Parameter Id="%AID%_UP-%TT%00001" Name="CustomHostname"     ParameterType="%AID%_PT-OnOffYesNo"         Offset="0" BitOffset="0" Text="Hostname anpassen" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%00002" Name="StaticIP"           ParameterType="%AID%_PT-OnOffYesNoInverted" Offset="0" BitOffset="1" Text="DHCP" Value="0" />
                 <!-- 6 bits free -->
