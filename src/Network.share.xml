@@ -5,10 +5,11 @@
   <op:config name="%NET_IPConfigTool%" value="0" />
   <op:config name="%NET_WifiTool%" value="0" />
   <op:config name="%NET_LanMode%" value="0" />
+  <op:config name="%NET_ServiceNTP%" value="1" />
 
   <!-- Prepare: Not ready to use -->
   <op:config name="%NET_ServiceHTTP%" value="0" />
-  <op:config name="%NET_ServiceNTP%" value="0" />
+
 
   <ManufacturerData>
     <Manufacturer>
@@ -49,13 +50,16 @@
                   <!-- <Enumeration Text="10 MBit/s Halb-Duplex" Value="4" Id="%ENID%" /> -->
                 </TypeRestriction>
               </ParameterType>
+              <ParameterType Id="%AID%_PT-NTPServer" Name="NTPServer">
+                <TypeText SizeInBit="400" /> <!-- 50 bytes -->
+              </ParameterType>
             </ParameterTypes>
             <Parameters>
               <!-- helper to check against a certain value in the case of a choose -->
               <Parameter Id="%AID%_P-%TT%01000" Name="SelectHelper"          ParameterType="%AID%_PT-ValueDpt5"         Text=""        Value="0" Access="None" />
               <Parameter Id="%AID%_P-%TT%01001" Name="WifiSSID"              ParameterType="%AID%_PT-WifiSSID"          Text="SSID"    Value="" />
               <Parameter Id="%AID%_P-%TT%01002" Name="WifiPassword"          ParameterType="%AID%_PT-WifiPassword"      Text="PSK"     Value=""/>
-
+            
               <!-- IP Config -->
               <Union SizeInBit="128"><!-- 16bytes-->
                 <Memory CodeSegment="%MID%" Offset="0" BitOffset="0" />
@@ -69,6 +73,9 @@
               <!-- 1bit options -->
               <Union SizeInBit="8">
                 <Memory CodeSegment="%MID%" Offset="16" BitOffset="0" />
+                <!-- Dummy parameter to create define dependig on config %NET_ServiceNTP% -->
+                <Parameter Id="%AID%_UP-%TT%00000" Name="ServiceNTP_%NET_ServiceNTP%"      ParameterType="%AID%_PT-OnOffYesNo"  Offset="0" BitOffset="0" Text="NetServciceNTP" Value="0"/>
+                
                 <Parameter Id="%AID%_UP-%TT%00001" Name="CustomHostname"     ParameterType="%AID%_PT-OnOffYesNo"         Offset="0" BitOffset="0" Text="Hostname anpassen" Value="0" />
                 <Parameter Id="%AID%_UP-%TT%00002" Name="StaticIP"           ParameterType="%AID%_PT-OnOffYesNoInverted" Offset="0" BitOffset="1" Text="DHCP" Value="0" />
                 <!-- 6 bits free -->
@@ -95,12 +102,13 @@
                 <Parameter Id="%AID%_UP-%TT%00052" Name="LanMode"            ParameterType="%AID%_PT-LanMode"       Offset="0" BitOffset="0" Text="LAN-Modus" Value="0" />
               </Union>
 
-              <Union SizeInBit="128">
+              <!-- NTP -->
+              <Union SizeInBit="408">
                 <Memory CodeSegment="%MID%" Offset="60" BitOffset="0" />
-                <!-- Set dummy for last Byte to reserve Space -->
-                <Parameter Id="%AID%_UP-%TT%00099" Name="Dummy"  ParameterType="%AID%_PT-ValueDpt5" Offset="15" BitOffset="0" Text="" Value="0" />
+                <Parameter Id="%AID%_UP-%TT%00061" Name="NTPServer"        ParameterType="%AID%_PT-NTPServer"     Offset="0"  BitOffset="0" Text="NTP Server" Value="pool.ntp.org" />
+                <!-- 50 characters + 0 terminator = 51 bytes used -->
               </Union>
-              
+
             </Parameters>
             <ParameterRefs>
               <ParameterRef Id="%AID%_P-%TT%01000_R-%TT%0100000" RefId="%AID%_P-%TT%01000" />
@@ -117,6 +125,8 @@
               <ParameterRef Id="%AID%_UP-%TT%00032_R-%TT%0003201" RefId="%AID%_UP-%TT%00032" />
               <ParameterRef Id="%AID%_UP-%TT%00033_R-%TT%0003301" RefId="%AID%_UP-%TT%00033" />
               <ParameterRef Id="%AID%_UP-%TT%00052_R-%TT%0005201" RefId="%AID%_UP-%TT%00052" />
+              <!-- NTPServer -->
+              <ParameterRef Id="%AID%_UP-%TT%00061_R-%TT%0006101" RefId="%AID%_UP-%TT%00061" />
             </ParameterRefs>
             <ComObjectTable>
             </ComObjectTable>
@@ -130,21 +140,21 @@
             </Script>  
           </Static>
           <Dynamic>
-            <Channel Id="%AID%_CH-%PREFIX%" Number="%PREFIX%" Name="Main" Text="Netzwerk" Icon="ethernet" HelpContext="Empty">
-              <ParameterBlock Id="%AID%_PB-nnn" Name="Basic" Text="Allgemein" Icon="cog-outline" HelpContext="Empty">
+            <Channel Id="%AID%_CH-%PREFIX%" Number="%PREFIX%" Name="Main" Text="Netzwerk" Icon="ethernet" HelpContext="NET-Netzwerk">
+              <ParameterBlock Id="%AID%_PB-nnn" Name="Basic" Text="Allgemein" Icon="cog-outline" HelpContext="NET-Netzwerk">
                 <!-- Hidden -->
                 <ParameterRefRef RefId="%AID%_P-%TT%01000_R-%TT%0100000" />
 
                 <ParameterSeparator Id="%AID%_PS-nnn" Text="IP-Adresse" UIHint="Headline" />
                 <choose ParamRefId="%AID%_P-%TT%01000_R-%TT%0100000"><!-- Static 0 -->
                   <when test="%NET_IPConfigTool%"> <!-- default -->
-                    <ParameterRefRef RefId="%AID%_UP-%TT%00002_R-%TT%0000201" IndentLevel="1" HelpContext="NET-IpAddress" />
+                    <ParameterRefRef RefId="%AID%_UP-%TT%00002_R-%TT%0000201" IndentLevel="1" HelpContext="NET-IP-Adresse" />
                     <choose ParamRefId="%AID%_UP-%TT%00002_R-%TT%0000201">
                       <when test="1">
-                        <ParameterRefRef RefId="%AID%_UP-%TT%00011_R-%TT%0001101" IndentLevel="1" HelpContext="NET-IpAddress" />
-                        <ParameterRefRef RefId="%AID%_UP-%TT%00012_R-%TT%0001201" IndentLevel="1" HelpContext="NET-IpAddress" />
-                        <ParameterRefRef RefId="%AID%_UP-%TT%00013_R-%TT%0001301" IndentLevel="1" HelpContext="NET-IpAddress" />
-                        <ParameterRefRef RefId="%AID%_UP-%TT%00021_R-%TT%0002101" IndentLevel="1" HelpContext="NET-IpAddress" />
+                        <ParameterRefRef RefId="%AID%_UP-%TT%00011_R-%TT%0001101" IndentLevel="1" HelpContext="NET-IP-Adresse" />
+                        <ParameterRefRef RefId="%AID%_UP-%TT%00012_R-%TT%0001201" IndentLevel="1" HelpContext="NET-IP-Adresse" />
+                        <ParameterRefRef RefId="%AID%_UP-%TT%00013_R-%TT%0001301" IndentLevel="1" HelpContext="NET-IP-Adresse" />
+                        <ParameterRefRef RefId="%AID%_UP-%TT%00021_R-%TT%0002101" IndentLevel="1" HelpContext="NET-IP-Adresse" />
                       </when>
                     </choose>
                   </when>
@@ -154,7 +164,7 @@
                 </choose>
 
                 <ParameterSeparator Id="%AID%_PS-nnn" Text="Services" UIHint="Headline" />
-                <ParameterRefRef RefId="%AID%_UP-%TT%00031_R-%TT%0003101" IndentLevel="1" HelpContext="NET-MDNS" />
+                <ParameterRefRef RefId="%AID%_UP-%TT%00031_R-%TT%0003101" IndentLevel="1" HelpContext="NET-mDNS-Service" />
                 
                 <!-- HTTP -->
                 <choose ParamRefId="%AID%_P-%TT%01000_R-%TT%0100000">
@@ -169,10 +179,10 @@
                     <ParameterRefRef RefId="%AID%_UP-%TT%00033_R-%TT%0003301" IndentLevel="1" />
                     <choose ParamRefId="%AID%_UP-%TT%00033_R-%TT%0003301">
                       <when test="0">
-                        <Assign TargetParamRefRef="%AID%_P-1000010_R-100001001" Value="0" />
+                        <Assign TargetParamRefRef="%AID%_UP-1000006_R-100000601" Value="0" />
                       </when>
                       <when test="1">
-                        <Assign TargetParamRefRef="%AID%_P-1000010_R-100001001" Value="1" />
+                        <Assign TargetParamRefRef="%AID%_UP-1000006_R-100000601" Value="1" />
                       </when>
                     </choose>
                   </when>
@@ -180,17 +190,17 @@
 
                 <ParameterSeparator Id="%AID%_PS-nnn" Text="Erweiterte Einstellung" UIHint="Headline" />
                 <!-- Hostname -->
-                <ParameterRefRef RefId="%AID%_UP-%TT%00001_R-%TT%0000101" IndentLevel="1" HelpContext="NET-Hostname" />
+                <ParameterRefRef RefId="%AID%_UP-%TT%00001_R-%TT%0000101" IndentLevel="1" HelpContext="%DOC%" />
                 <choose ParamRefId="%AID%_UP-%TT%00001_R-%TT%0000101">
                   <when test="1">
-                    <ParameterRefRef RefId="%AID%_P-%TT%00010_R-%TT%0001001" IndentLevel="2" HelpContext="NET-Hostname" />
+                    <ParameterRefRef RefId="%AID%_P-%TT%00010_R-%TT%0001001" IndentLevel="2" HelpContext="%DOC%" />
                   </when>
                 </choose>
 
                 <!-- LanMode -->
                 <choose ParamRefId="%AID%_P-%TT%01000_R-%TT%0100000">
                   <when test="!=%NET_LanMode%">
-                    <ParameterRefRef RefId="%AID%_UP-%TT%00052_R-%TT%0005201" IndentLevel="1" HelpContext="NET-LanMode" />
+                    <ParameterRefRef RefId="%AID%_UP-%TT%00052_R-%TT%0005201" IndentLevel="1" HelpContext="%DOC%" />
                   </when>
                 </choose>
               </ParameterBlock>
@@ -198,7 +208,7 @@
               <!-- HTTP -->
               <choose ParamRefId="%AID%_UP-%TT%00032_R-%TT%0003201">
                 <when test="1">
-                  <ParameterBlock Id="%AID%_PB-nnn" Name="HTTP" Text="Webserver" Icon="web" HelpContext="Empty">
+                  <ParameterBlock Id="%AID%_PB-nnn" Name="HTTP" Text="Webserver" Icon="web" HelpContext="NET-Webserver">
                     <ParameterSeparator Id="%AID%_PS-nnn" Text="Webservereinstellung" UIHint="Headline" />
                   </ParameterBlock>
                 </when>
@@ -207,8 +217,10 @@
               <!-- NTP -->
               <choose ParamRefId="%AID%_UP-%TT%00033_R-%TT%0003301">
                 <when test="1">
-                  <ParameterBlock Id="%AID%_PB-nnn" Name="NTP" Text="Zeitgeber" Icon="clock-outline" HelpContext="Empty">
+                  <ParameterBlock Id="%AID%_PB-nnn" Name="NTP" Text="Zeitgeber" Icon="clock-outline" HelpContext="NET-Zeitgeber">
                     <ParameterSeparator Id="%AID%_PS-nnn" Text="Zeitgeber (NTP)" UIHint="Headline" />
+                    <!-- NTPServer -->
+                    <ParameterRefRef RefId="%AID%_UP-%TT%00061_R-%TT%0006101" IndentLevel="1" HelpContext="%DOC%" />
                   </ParameterBlock>
                 </when>
               </choose>

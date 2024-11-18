@@ -4,6 +4,7 @@
 
     #include "ModuleVersionCheck.h"
     #include "NetworkModule.h"
+    #include "NtpTimeProvider.h"
 
     #define MDNS_DEBUG_PORT Serial
     #define OPENKNX_MDNS_FULL
@@ -266,17 +267,11 @@ void NetworkModule::setup(bool configured)
     #if defined(ARDUINO_ARCH_RP2040)
         registerCallback([this](bool state) { if (state) MDNS.notifyAPChange(); });
     #endif
+#ifdef NET_ServiceNTP_1
+    if (ParamNET_NTP)
+        openknx.time.setTimeProvider(new NtpTimeProvider());
+#endif
     }
-
-    // NTP.begin("pool.ntp.org", "time.nist.gov");
-    // NTP.waitSet(3000);
-    // logInfoP("NTP done");
-
-    // time_t now = time(nullptr);
-    // struct tm timeinfo;
-    // gmtime_r(&now, &timeinfo);
-    // logInfoP("Time: %i",now);
-    // logInfoP("Time: %s", asctime(&timeinfo));
 }
 
     #ifdef HAS_USB
