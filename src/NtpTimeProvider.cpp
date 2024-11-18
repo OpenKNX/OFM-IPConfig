@@ -1,14 +1,13 @@
 #include "NtpTimeProvider.h"
-#ifdef NET_ServiceNTP_1
-    #ifdef ARDUINO_ARCH_ESP32
-        #include "lwip/apps/sntp.h"
-        #include <esp_sntp.h>
+#ifdef ARDUINO_ARCH_ESP32
+    #include "lwip/apps/sntp.h"
+    #include <esp_sntp.h>
 
 NtpTimeProvider* NtpTimeProvider::currentInstance = nullptr;
 
 void NtpTimeProvider::logInformation()
 {
-    logInfoP("Time Provider NTP");
+    logInfoP("Timeprovider: NTP");
     switch (sntp_get_sync_status())
     {
         case sntp_sync_status_t::SNTP_SYNC_STATUS_COMPLETED:
@@ -37,7 +36,7 @@ void NtpTimeProvider::logInformation()
 
 const std::string NtpTimeProvider::logPrefix()
 {
-    return "NTP";
+    return "Time<NTP>";
 }
 
 void NtpTimeProvider::setup()
@@ -73,7 +72,4 @@ NtpTimeProvider::~NtpTimeProvider()
     currentInstance = nullptr;
 }
 
-    #else
-        #error "NTP is only supported on ESP32. Use <op:config name="%NET_ServiceNTP%" value="0" in the application .xml for other platforms to disable NTP."
-    #endif
 #endif

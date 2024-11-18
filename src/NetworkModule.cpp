@@ -267,10 +267,15 @@ void NetworkModule::setup(bool configured)
     #if defined(ARDUINO_ARCH_RP2040)
         registerCallback([this](bool state) { if (state) MDNS.notifyAPChange(); });
     #endif
-#ifdef NET_ServiceNTP_1
-    if (ParamNET_NTP)
-        openknx.time.setTimeProvider(new NtpTimeProvider());
-#endif
+
+        if (ParamNET_NTP)
+        {
+    #ifdef ARDUINO_ARCH_ESP32
+            openknx.time.setTimeProvider(new NtpTimeProvider());
+    #else
+            logErrorP("NTP is activated but unsupported!");
+    #endif
+        }
     }
 }
 
