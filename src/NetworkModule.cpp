@@ -207,32 +207,35 @@ void NetworkModule::initIp()
         #ifdef KNX_IP_WIFI
     if (strlen(_wifiSSID) > 0)
     {
-        KNX_NETIF.config(_staticLocalIP, _staticGatewayIP, _staticSubnetMask, _staticNameServerIP);
+        if(_useStaticIP)
+            KNX_NETIF.config(_staticLocalIP, _staticGatewayIP, _staticSubnetMask, _staticNameServerIP);
         KNX_NETIF.mode(WIFI_AP_STA);
         KNX_NETIF.setAutoReconnect(true);
         KNX_NETIF.begin(_wifiSSID, _wifiPassphrase);
     }
         #else
     KNX_NETIF.begin();
-    KNX_NETIF.config(_staticLocalIP, _staticGatewayIP, _staticSubnetMask, _staticNameServerIP); // Stupid: Nedd to be after begin an also DHCP!
+    if(_useStaticIP)
+        KNX_NETIF.config(_staticLocalIP, _staticGatewayIP, _staticSubnetMask, _staticNameServerIP); // Stupid: Nedd to be after begin an also DHCP!
         #endif
 
     #elif ARDUINO_ARCH_RP2040
         #ifdef KNX_IP_WIFI
     if (strlen(_wifiSSID) > 0)
     {
-        KNX_NETIF.config(_staticLocalIP, _staticNameServerIP, _staticGatewayIP, _staticSubnetMask);
+        if(_useStaticIP)
+            KNX_NETIF.config(_staticLocalIP, _staticNameServerIP, _staticGatewayIP, _staticSubnetMask);
         logInfoP("Connecting to WiFi \"%s\"", _wifiSSID);
         KNX_NETIF.begin(_wifiSSID, _wifiPassphrase);
     }
         #else
-
-    if (!KNX_NETIF.config(_staticLocalIP, _staticGatewayIP, _staticSubnetMask, _staticNameServerIP))
-    {
-        logIndentUp();
-        logErrorP("Invalid IP settings");
-        logIndentDown();
-    }
+    if(_useStaticIP)
+        if (!KNX_NETIF.config(_staticLocalIP, _staticGatewayIP, _staticSubnetMask, _staticNameServerIP))
+        {
+            logIndentUp();
+            logErrorP("Invalid IP settings");
+            logIndentDown();
+        }
 
     KNX_NETIF.setSPISpeed(OPENKNX_NET_SPI_SPEED);
     if (!KNX_NETIF.begin())
