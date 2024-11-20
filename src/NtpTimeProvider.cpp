@@ -1,7 +1,7 @@
+#include "NtpTimeProvider.h"
+
 #ifdef ParamNET_NTP
     #ifdef ARDUINO_ARCH_ESP32
-
-        #include "NtpTimeProvider.h"
         #include "lwip/apps/sntp.h"
         #include <esp_sntp.h>
 
