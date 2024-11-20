@@ -95,17 +95,23 @@ void NetworkModule::loadSettings()
     #if !defined(ParamNET_HostAddress) || !defined(ParamNET_SubnetMask) || !defined(ParamNET_GatewayAddress) || !defined(ParamNET_NameserverAddress) || !defined(ParamNET_StaticIP) || defined(OPENKNX_NETWORK_USEIPPROP)
 
         logInfoP("Read ip settings from properties");
-        _staticGatewayIP = GetIpProperty(PID_DEFAULT_GATEWAY);
-        _staticSubnetMask = GetIpProperty(PID_SUBNET_MASK);
-        _staticLocalIP = GetIpProperty(PID_IP_ADDRESS);
         _useStaticIP = GetByteProperty(PID_IP_ASSIGNMENT_METHOD) == 1; // see 2.5.6 of 03_08_03
+        if (_useStaticIP)
+        {
+            _staticGatewayIP = GetIpProperty(PID_DEFAULT_GATEWAY);
+            _staticSubnetMask = GetIpProperty(PID_SUBNET_MASK);
+            _staticLocalIP = GetIpProperty(PID_IP_ADDRESS);
+        }
     #else
         logInfoP("Read ip settings from parameters");
-        _staticLocalIP = htonl(ParamNET_HostAddress);
-        _staticSubnetMask = htonl(ParamNET_SubnetMask);
-        _staticGatewayIP = htonl(ParamNET_GatewayAddress);
-        _staticNameServerIP = htonl(ParamNET_NameserverAddress);
         _useStaticIP = ParamNET_StaticIP;
+        if (_useStaticIP)
+        {
+            _staticLocalIP = htonl(ParamNET_HostAddress);
+            _staticSubnetMask = htonl(ParamNET_SubnetMask);
+            _staticGatewayIP = htonl(ParamNET_GatewayAddress);
+            _staticNameServerIP = htonl(ParamNET_NameserverAddress);
+        }
     #endif
     }
     else
@@ -268,14 +274,16 @@ void NetworkModule::setup(bool configured)
         registerCallback([this](bool state) { if (state) MDNS.notifyAPChange(); });
     #endif
 
+    #ifdef ParamNET_NTP
         if (ParamNET_NTP)
         {
-    #ifdef ARDUINO_ARCH_ESP32
+        #ifdef ARDUINO_ARCH_ESP32
             openknx.time.setTimeProvider(new NtpTimeProvider());
-    #else
+        #else
             logErrorP("NTP is activated but unsupported!");
-    #endif
+        #endif
         }
+    #endif
     }
 }
 
