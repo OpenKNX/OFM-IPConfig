@@ -202,10 +202,7 @@ void NetworkModule::initIp()
         logErrorP("No WiFI Settings found!");
     #endif
 
-    if (_useStaticIP)
-        logInfoP("Using static IP");
-    else
-        logInfoP("Using DHCP");
+    logInfoP(_useStaticIP ? "Using static IP" : "Using DHCP");
 
     #ifdef ARDUINO_ARCH_ESP32
     WiFi.onEvent([](WiFiEvent_t event) -> void { openknxNetwork.esp32WifiEvent(event); });
@@ -295,13 +292,14 @@ void NetworkModule::fillNetworkFile(UsbExchangeFile *file)
     writeLineToFile(file, "");
     writeLineToFile(file, "Hostname: %s", _hostName);
     writeLineToFile(file, "Network: %s", established() ? "Established" : "Disconnected");
+    writeLineToFile(file, _useStaticIP ? "Using static IP" : "Using DHCP");
     if (established())
     {
         writeLineToFile(file, "IP-Address: %s", localIP().toString().c_str());
         writeLineToFile(file, "Netmask: %s", subnetMask().toString().c_str());
         writeLineToFile(file, "Gateway: %s", gatewayIP().toString().c_str());
         writeLineToFile(file, "DNS: %s", nameServerIP().toString().c_str());
-        writeLineToFile(file, "Mode: %s", phyMode().c_str());
+        // writeLineToFile(file, "Mode: %s", phyMode().c_str()); Currently not supported
     }
 }
     #endif
@@ -532,11 +530,12 @@ void NetworkModule::showNetworkInformations(bool console)
 
     if (established())
     {
+        logInfoP(_useStaticIP ? "Using static IP" : "Using DHCP");
         logInfoP("IP-Address: %s", localIP().toString().c_str());
         logInfoP("Netmask: %s", subnetMask().toString().c_str());
         logInfoP("Gateway: %s", gatewayIP().toString().c_str());
         logInfoP("DNS: %s", nameServerIP().toString().c_str());
-        logInfoP("Mode: %s", phyMode().c_str());
+        // logInfoP("Mode: %s", phyMode().c_str()); currently not supported
 
     #ifdef KNX_IP_WIFI
         std::string wifiInfo = std::string(_wifiSSID) + " (" + std::to_string(KNX_NETIF.RSSI()) + "dBm)";
