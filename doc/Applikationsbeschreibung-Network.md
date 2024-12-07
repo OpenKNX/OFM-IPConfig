@@ -6,6 +6,12 @@ Im Bereich Netzwerk werden die für die Netzwerkverbindung notewendigen Einstell
 <!-- DOC Skip="1" -->
 Hinweis: Nicht alle der hier angeführten Optionen sind in jeder Firmware verhanden. 
 
+#### OTA Update
+
+OpenKNX Geräte unterstützen Firmwareupdates über das Netzwerk (Over the air).
+Das OTA muss jedoch zuerst am Gerät erlaubt werden.
+Dies kann durch drücken des PROG Tasters oder über die Konsole mit dem Befehl `ota` erfolgen.
+
 <!-- DOC -->
 ## Allgemein
 

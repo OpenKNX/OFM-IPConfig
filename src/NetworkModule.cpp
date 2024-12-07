@@ -1,4 +1,5 @@
 #ifndef OPENKNX_NET_IGNORE
+    #include <ArduinoOTA.h>
     #include <iostream>
     #include <sstream>
 
@@ -277,6 +278,37 @@ void NetworkModule::setup(bool configured)
     #endif
         }
     }
+
+    ArduinoOTA.onStart([&]() {
+        if (ArduinoOTA.getCommand() == U_FLASH)
+            logInfoP("Start updating firmware");
+        else // U_SPIFFS
+            logInfoP("Start updating filesystem");
+    });
+    ArduinoOTA.onEnd([&]() {
+        logInfoP("End update");
+    });
+    ArduinoOTA.onProgress([&](unsigned int progress, unsigned int total) {
+        int percent = (int)progress / (total / 100.0);
+        if (percent % 10 == 0 && _otaProgress != percent)
+        {
+            logInfoP("Progress: %d%%", percent);
+            _otaProgress = percent;
+        }
+    });
+    ArduinoOTA.onError([&](ota_error_t error) {
+        const char *errorText = "unkown";
+        if (error == OTA_AUTH_ERROR) errorText = "auth failed";
+        else if (error == OTA_BEGIN_ERROR)
+            errorText = "begin failed";
+        else if (error == OTA_CONNECT_ERROR)
+            errorText = "connect failed";
+        else if (error == OTA_RECEIVE_ERROR)
+            errorText = "receive failed";
+        else if (error == OTA_END_ERROR)
+            errorText = "end failed";
+        logErrorP("Error[%d]: %s", error, errorText);
+    });
 }
 
     #ifdef HAS_USB
@@ -371,6 +403,49 @@ void NetworkModule::loop(bool configured)
     checkLinkStatus();
 
     if (!configured || ParamNET_mDNS) handleMDNS();
+    handleOTA();
+}
+
+void NetworkModule::handleOTA()
+{
+    if (_otaAllowed)
+    {
+        ArduinoOTA.handle();
+    }
+    if (knx.progMode() && connected())
+    {
+        if (!_otaAllowedByProgMode && !_otaAllowed)
+        {
+            _otaAllowedByProgMode = true;
+            OTAallowed(true);
+        }
+    }
+    else if (_otaAllowedByProgMode)
+    {
+        OTAallowed(false);
+    }
+}
+
+bool NetworkModule::OTAallowed()
+{
+    return _otaAllowed;
+}
+
+void NetworkModule::OTAallowed(bool allowed)
+{
+    if (allowed == _otaAllowed) return;
+    _otaAllowed = allowed;
+    if (allowed)
+    {
+        logInfoP("OTA enabled");
+        ArduinoOTA.begin();
+    }
+    else
+    {
+        _otaAllowedByProgMode = false;
+        logInfoP("OTA disabled");
+        ArduinoOTA.end();
+    }
 }
 
 void NetworkModule::handleMDNS()
@@ -458,6 +533,12 @@ bool NetworkModule::processCommand(const std::string cmd, bool debugKo)
     if (!debugKo && (cmd == "n" || cmd == "net"))
     {
         showNetworkInformations(true);
+        return true;
+    }
+
+    if (cmd == "ota")
+    {
+        OTAallowed(!_otaAllowed);
         return true;
     }
 
@@ -555,6 +636,7 @@ void NetworkModule::showHelp()
     #else
     // if (!_useStaticIP) openknx.console.printHelpLine("net renew", "Renew DHCP Address");
     #endif
+    openknx.console.printHelpLine("ota", "Toggle OTA");
 }
 
 // Link status
