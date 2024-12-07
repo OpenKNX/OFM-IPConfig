@@ -96,17 +96,23 @@ void NetworkModule::loadSettings()
     #if !defined(ParamNET_HostAddress) || !defined(ParamNET_SubnetMask) || !defined(ParamNET_GatewayAddress) || !defined(ParamNET_NameserverAddress) || !defined(ParamNET_StaticIP) || defined(OPENKNX_NETWORK_USEIPPROP)
 
         logInfoP("Read ip settings from properties");
-        _staticGatewayIP = GetIpProperty(PID_DEFAULT_GATEWAY);
-        _staticSubnetMask = GetIpProperty(PID_SUBNET_MASK);
-        _staticLocalIP = GetIpProperty(PID_IP_ADDRESS);
         _useStaticIP = GetByteProperty(PID_IP_ASSIGNMENT_METHOD) == 1; // see 2.5.6 of 03_08_03
+        if (_useStaticIP)
+        {
+            _staticGatewayIP = GetIpProperty(PID_DEFAULT_GATEWAY);
+            _staticSubnetMask = GetIpProperty(PID_SUBNET_MASK);
+            _staticLocalIP = GetIpProperty(PID_IP_ADDRESS);
+        }
     #else
         logInfoP("Read ip settings from parameters");
-        _staticLocalIP = htonl(ParamNET_HostAddress);
-        _staticSubnetMask = htonl(ParamNET_SubnetMask);
-        _staticGatewayIP = htonl(ParamNET_GatewayAddress);
-        _staticNameServerIP = htonl(ParamNET_NameserverAddress);
         _useStaticIP = ParamNET_StaticIP;
+        if (_useStaticIP)
+        {
+            _staticLocalIP = htonl(ParamNET_HostAddress);
+            _staticSubnetMask = htonl(ParamNET_SubnetMask);
+            _staticGatewayIP = htonl(ParamNET_GatewayAddress);
+            _staticNameServerIP = htonl(ParamNET_NameserverAddress);
+        }
     #endif
     }
     else
@@ -197,10 +203,7 @@ void NetworkModule::initIp()
         logErrorP("No WiFI Settings found!");
     #endif
 
-    if (_useStaticIP)
-        logInfoP("Using static IP");
-    else
-        logInfoP("Using DHCP");
+    logInfoP(_useStaticIP ? "Using static IP" : "Using DHCP");
 
     #ifdef ARDUINO_ARCH_ESP32
     WiFi.onEvent([](WiFiEvent_t event) -> void { openknxNetwork.esp32WifiEvent(event); });
@@ -269,14 +272,16 @@ void NetworkModule::setup(bool configured)
         registerCallback([this](bool state) { if (state) MDNS.notifyAPChange(); });
     #endif
 
+    #ifdef ParamNET_NTP
         if (ParamNET_NTP)
         {
-    #ifdef ARDUINO_ARCH_ESP32
+        #ifdef ARDUINO_ARCH_ESP32
             openknx.time.setTimeProvider(new NtpTimeProvider());
-    #else
+        #else
             logErrorP("NTP is activated but unsupported!");
-    #endif
+        #endif
         }
+    #endif
     }
 
     ArduinoOTA.onStart([&]() {
@@ -319,13 +324,14 @@ void NetworkModule::fillNetworkFile(UsbExchangeFile *file)
     writeLineToFile(file, "");
     writeLineToFile(file, "Hostname: %s", _hostName);
     writeLineToFile(file, "Network: %s", established() ? "Established" : "Disconnected");
+    writeLineToFile(file, _useStaticIP ? "Using static IP" : "Using DHCP");
     if (established())
     {
         writeLineToFile(file, "IP-Address: %s", localIP().toString().c_str());
         writeLineToFile(file, "Netmask: %s", subnetMask().toString().c_str());
         writeLineToFile(file, "Gateway: %s", gatewayIP().toString().c_str());
         writeLineToFile(file, "DNS: %s", nameServerIP().toString().c_str());
-        writeLineToFile(file, "Mode: %s", phyMode().c_str());
+        // writeLineToFile(file, "Mode: %s", phyMode().c_str()); Currently not supported
     }
 }
     #endif
@@ -605,11 +611,12 @@ void NetworkModule::showNetworkInformations(bool console)
 
     if (established())
     {
+        logInfoP(_useStaticIP ? "Using static IP" : "Using DHCP");
         logInfoP("IP-Address: %s", localIP().toString().c_str());
         logInfoP("Netmask: %s", subnetMask().toString().c_str());
         logInfoP("Gateway: %s", gatewayIP().toString().c_str());
         logInfoP("DNS: %s", nameServerIP().toString().c_str());
-        logInfoP("Mode: %s", phyMode().c_str());
+        // logInfoP("Mode: %s", phyMode().c_str()); currently not supported
 
     #ifdef KNX_IP_WIFI
         std::string wifiInfo = std::string(_wifiSSID) + " (" + std::to_string(KNX_NETIF.RSSI()) + "dBm)";

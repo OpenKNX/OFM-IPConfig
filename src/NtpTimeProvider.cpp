@@ -1,7 +1,9 @@
 #include "NtpTimeProvider.h"
-#ifdef ARDUINO_ARCH_ESP32
-    #include "lwip/apps/sntp.h"
-    #include <esp_sntp.h>
+
+#ifdef ParamNET_NTP
+    #ifdef ARDUINO_ARCH_ESP32
+        #include "lwip/apps/sntp.h"
+        #include <esp_sntp.h>
 
 NtpTimeProvider* NtpTimeProvider::currentInstance = nullptr;
 
@@ -72,4 +74,5 @@ NtpTimeProvider::~NtpTimeProvider()
     currentInstance = nullptr;
 }
 
+    #endif
 #endif
