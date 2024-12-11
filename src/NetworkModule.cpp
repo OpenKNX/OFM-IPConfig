@@ -294,6 +294,9 @@ void NetworkModule::setup(bool configured)
         logInfoP("End update");
     });
     ArduinoOTA.onProgress([&](unsigned int progress, unsigned int total) {
+#ifdef OPENKNX_WATCHDOG
+        openknx.watchdog.loop();
+#endif
         int percent = (int)progress / (total / 100.0);
         if (percent % 10 == 0 && _otaProgress != percent)
         {
