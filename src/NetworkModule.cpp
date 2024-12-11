@@ -284,6 +284,7 @@ void NetworkModule::setup(bool configured)
     #endif
     }
 
+    ArduinoOTA.setRebootOnSuccess(false);
     ArduinoOTA.onStart([&]() {
         if (ArduinoOTA.getCommand() == U_FLASH)
             logInfoP("Start updating firmware");
@@ -292,6 +293,7 @@ void NetworkModule::setup(bool configured)
     });
     ArduinoOTA.onEnd([&]() {
         logInfoP("End update");
+        openknx.restart();
     });
     ArduinoOTA.onProgress([&](unsigned int progress, unsigned int total) {
 #ifdef OPENKNX_WATCHDOG
