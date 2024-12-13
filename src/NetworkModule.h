@@ -57,8 +57,7 @@ class NetworkModule : public OpenKNX::Module
 
     bool processFunctionProperty(uint8_t objectIndex, uint8_t propertyId, uint8_t length, uint8_t *data, uint8_t *resultData, uint8_t &resultLength) override;
 
-    void OTAallowed(bool allow);
-    bool OTAallowed();
+    void changeOTA(bool allow);
 #ifdef KNX_IP_WIFI
     void saveWifiSettings(const char *ssid, const char *passphrase);
     void readWifiSettings();
@@ -93,7 +92,14 @@ class NetworkModule : public OpenKNX::Module
     bool _useStaticIP = false;
     bool _useMDNS = false;
     bool _otaAllowed = false;
-    bool _otaAllowedByProgMode = false;
+    bool _otaHandle = false;
+#ifdef ARDUINO_ARCH_ESP32
+    const uint16_t _otaPort = 3232;
+    const char *_otaPortString = "3232";
+#else
+    const uint16_t _otaPort = 2040;
+    const char *_otaPortString = "2040";
+#endif
     uint8_t _otaProgress = 0;
     IPAddress _staticLocalIP;
     IPAddress _staticSubnetMask;

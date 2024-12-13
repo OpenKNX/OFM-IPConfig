@@ -7,9 +7,6 @@
     #include "NetworkModule.h"
     #include "NtpTimeProvider.h"
 
-    #define MDNS_DEBUG_PORT Serial
-    #define OPENKNX_MDNS_FULL
-
     #ifndef ParamNET_mDNS
         #define ParamNET_mDNS true
     #endif
@@ -24,7 +21,7 @@
             #pragma warn "Missing KNX_IP_LAN or KNX_IP_WIFI"
         #endif
     #elif defined(ARDUINO_ARCH_RP2040)
-        #include "LEAmDNS.h"
+        #include <SimpleMDNS.h>
 
         #if defined(KNX_IP_LAN)
             #include "W5500lwIP.h"
@@ -152,6 +149,10 @@ void NetworkModule::esp32WifiEvent(WiFiEvent_t event)
 {
     switch (event)
     {
+        case ARDUINO_EVENT_WIFI_READY:
+        case ARDUINO_EVENT_WIFI_STA_START:
+            // do nothing
+            break;
         case ARDUINO_EVENT_ETH_START:
         case ARDUINO_EVENT_WIFI_AP_START:
             logDebugP("Event: Start");
@@ -209,13 +210,13 @@ void NetworkModule::initIp()
     WiFi.onEvent([](WiFiEvent_t event) -> void { openknxNetwork.esp32WifiEvent(event); });
 
         #ifdef KNX_IP_WIFI
+    KNX_NETIF.config(_staticLocalIP, _staticGatewayIP, _staticSubnetMask, _staticNameServerIP);
+    KNX_NETIF.mode(WIFI_AP_STA);
+    KNX_NETIF.setAutoReconnect(true);
     if (strlen(_wifiSSID) > 0)
-    {
-        KNX_NETIF.config(_staticLocalIP, _staticGatewayIP, _staticSubnetMask, _staticNameServerIP);
-        KNX_NETIF.mode(WIFI_AP_STA);
-        KNX_NETIF.setAutoReconnect(true);
         KNX_NETIF.begin(_wifiSSID, _wifiPassphrase);
-    }
+    else
+        KNX_NETIF.begin();
         #else
     KNX_NETIF.begin();
     KNX_NETIF.config(_staticLocalIP, _staticGatewayIP, _staticSubnetMask, _staticNameServerIP); // Stupid: Nedd to be after begin an also DHCP!
@@ -261,16 +262,25 @@ void NetworkModule::setup(bool configured)
     {
         logDebugP("Start mDNS");
         if (!MDNS.begin(_hostName)) logErrorP("Hostname not applied (mDNS)");
+
+    #ifdef ARDUINO_ARCH_ESP32
         MDNS.addService("openknx", "tcp", -1);
-    #ifdef OPENKNX_MDNS_FULL
         MDNS.addServiceTxt("openknx", "tcp", "serial", openknx.info.humanSerialNumber().c_str());
         MDNS.addServiceTxt("openknx", "tcp", "version", openknx.info.humanFirmwareVersion().c_str());
         MDNS.addServiceTxt("openknx", "tcp", "firmware", openknx.info.humanFirmwareNumber().c_str());
-        MDNS.addServiceTxt("openknx", "tcp", "pa", openknx.info.humanIndividualAddress().c_str());
+        MDNS.addServiceTxt("openknx", "tcp", "address", openknx.info.humanIndividualAddress().c_str());
+        MDNS.addServiceTxt("openknx", "tcp", "ota", _otaPortString);
+        MDNS.addServiceTxt("openknx", "tcp", "configured", knx.configured() ? "1" : "0");
+    #else
+        hMDNSService service = MDNS.addService("openknx", "tcp", -1);
+        MDNS.addServiceTxt(service, "serial", openknx.info.humanSerialNumber().c_str());
+        MDNS.addServiceTxt(service, "version", openknx.info.humanFirmwareVersion().c_str());
+        MDNS.addServiceTxt(service, "firmware", openknx.info.humanFirmwareNumber().c_str());
+        MDNS.addServiceTxt(service, "address", openknx.info.humanIndividualAddress().c_str());
+        MDNS.addServiceTxt(service, "ota", _otaPortString);
+        MDNS.addServiceTxt(service, "configured", (uint8_t)knx.configured());
     #endif
-    #if defined(ARDUINO_ARCH_RP2040)
-        registerCallback([this](bool state) { if (state) MDNS.notifyAPChange(); });
-    #endif
+        MDNS.enableArduino(_otaPort /* default port for ota */, false /* AUTH true / false */);
 
     #ifdef ParamNET_NTP
         if (ParamNET_NTP)
@@ -284,35 +294,47 @@ void NetworkModule::setup(bool configured)
     #endif
     }
 
+    #ifdef ARDUINO_ARCH_ESP32
+    ArduinoOTA.setMdnsEnabled(false); // handle global
+    #endif
+    ArduinoOTA.setPort(_otaPort);
+    ArduinoOTA.setRebootOnSuccess(false);
     ArduinoOTA.onStart([&]() {
         if (ArduinoOTA.getCommand() == U_FLASH)
-            logInfoP("Start updating firmware");
+            logInfo("OTA", "Start updating firmware");
         else // U_SPIFFS
-            logInfoP("Start updating filesystem");
+            logInfo("OTA", "Start updating filesystem");
     });
     ArduinoOTA.onEnd([&]() {
-        logInfoP("End update");
+        logIndentUp();
+        logInfo("OTA", "Update complete");
+        logIndentDown();
+        openknx.restart();
     });
     ArduinoOTA.onProgress([&](unsigned int progress, unsigned int total) {
         int percent = (int)progress / (total / 100.0);
         if (percent % 10 == 0 && _otaProgress != percent)
         {
-            logInfoP("Progress: %d%%", percent);
+            logIndentUp();
+            logInfo("OTA", "Progress: %d%%", percent);
+            logIndentDown();
             _otaProgress = percent;
         }
+        openknx.loop();
     });
     ArduinoOTA.onError([&](ota_error_t error) {
-        const char *errorText = "unkown";
-        if (error == OTA_AUTH_ERROR) errorText = "auth failed";
+        logIndentUp();
+        if (error == OTA_AUTH_ERROR)
+            logError("OTA", "Auth error");
         else if (error == OTA_BEGIN_ERROR)
-            errorText = "begin failed";
+            logErrorP("OTA", "Begin error");
         else if (error == OTA_CONNECT_ERROR)
-            errorText = "connect failed";
+            logError("OTA", "Connect error");
         else if (error == OTA_RECEIVE_ERROR)
-            errorText = "receive failed";
+            logError("OTA", "Receive error");
         else if (error == OTA_END_ERROR)
-            errorText = "end failed";
-        logErrorP("Error[%d]: %s", error, errorText);
+            logError("OTA", "End error");
+        logIndentDown();
     });
 }
 
@@ -406,62 +428,39 @@ void NetworkModule::loop(bool configured)
     }
 
     if (_powerSave) return;
-    checkLinkStatus();
 
-    if (!configured || ParamNET_mDNS) handleMDNS();
+    checkLinkStatus();
     handleOTA();
 }
 
 void NetworkModule::handleOTA()
 {
-    if (_otaAllowed)
+    if (_otaAllowed && !_otaHandle)
     {
+        _otaHandle = true; // prevent recursion
         ArduinoOTA.handle();
+        _otaHandle = false;
     }
-    if (knx.progMode() && connected())
-    {
-        if (!_otaAllowedByProgMode && !_otaAllowed)
-        {
-            _otaAllowedByProgMode = true;
-            OTAallowed(true);
-        }
-    }
-    else if (_otaAllowedByProgMode)
-    {
-        OTAallowed(false);
-    }
+
+    changeOTA(knx.progMode());
 }
 
-bool NetworkModule::OTAallowed()
+void NetworkModule::changeOTA(bool allow)
 {
-    return _otaAllowed;
-}
+    const bool allowed = allow && true; // prepare for UI
 
-void NetworkModule::OTAallowed(bool allowed)
-{
-    if (allowed == _otaAllowed) return;
+    // No change happen
+    if (_otaAllowed == allowed) return;
+
     _otaAllowed = allowed;
-    if (allowed)
-    {
-        logInfoP("OTA enabled");
+    if (_otaAllowed)
+    #ifdef ARDUINO_ARCH_ESP32
         ArduinoOTA.begin();
-    }
-    else
-    {
-        _otaAllowedByProgMode = false;
-        logInfoP("OTA disabled");
-        ArduinoOTA.end();
-    }
-}
-
-void NetworkModule::handleMDNS()
-{
-    #ifdef KNX_IP_GENERIC
-    mdns.run();
-    #elif defined(ARDUINO_ARCH_ESP32)
     #else
-    MDNS.update();
+        ArduinoOTA.begin(false);
     #endif
+    else
+        ArduinoOTA.end();
 }
 
 IPAddress NetworkModule::GetIpProperty(uint8_t PropertyId)
@@ -539,12 +538,6 @@ bool NetworkModule::processCommand(const std::string cmd, bool debugKo)
     if (!debugKo && (cmd == "n" || cmd == "net"))
     {
         showNetworkInformations(true);
-        return true;
-    }
-
-    if (cmd == "ota")
-    {
-        OTAallowed(!_otaAllowed);
         return true;
     }
 
