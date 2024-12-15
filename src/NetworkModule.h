@@ -57,7 +57,6 @@ class NetworkModule : public OpenKNX::Module
 
     bool processFunctionProperty(uint8_t objectIndex, uint8_t propertyId, uint8_t length, uint8_t *data, uint8_t *resultData, uint8_t &resultLength) override;
 
-    void changeOTA(bool allow);
 #ifdef KNX_IP_WIFI
     void saveWifiSettings(const char *ssid, const char *passphrase);
     void readWifiSettings();

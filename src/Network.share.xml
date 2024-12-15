@@ -6,6 +6,7 @@
   <op:config name="%NET_WifiTool%" value="0" />
   <op:config name="%NET_LanMode%" value="0" />
   <op:config name="%NET_ServiceNTP%" value="1" />
+  <op:config name="%NET_ServiceOTA%" value="1" />
 
   <!-- Prepare: Not ready to use -->
   <op:config name="%NET_ServiceHTTP%" value="0" />
@@ -40,6 +41,13 @@
               </ParameterType>
               <ParameterType Id="%AID%_PT-WifiPassword" Name="WifiPassword">
                 <TypeText SizeInBit="504" />
+              </ParameterType>
+              <ParameterType Id="%AID%_PT-OTAUpdate" Name="OTAUpdate">
+                <TypeRestriction Base="Value" SizeInBit="2">
+                  <Enumeration Text="Im Prog-Modus" Value="0" Id="%ENID%" />
+                  <Enumeration Text="Immer aktiv" Value="1" Id="%ENID%" />
+                  <Enumeration Text="Abgeschaltet" Value="2" Id="%ENID%" />
+                </TypeRestriction>
               </ParameterType>
               <ParameterType Id="%AID%_PT-LanMode" Name="LanMode">
                 <TypeRestriction Base="Value" SizeInBit="4">
@@ -82,9 +90,10 @@
               <!-- Services -->
               <Union SizeInBit="8">
                 <Memory CodeSegment="%MID%" Offset="17" BitOffset="0" />
-                <Parameter Id="%AID%_UP-%TT%00031" Name="mDNS"               ParameterType="%AID%_PT-OnOffYesNo"         Offset="0" BitOffset="0" Text="mDNS" Value="1" /> 
+                <Parameter Id="%AID%_UP-%TT%00031" Name="mDNS"               ParameterType="%AID%_PT-OnOffYesNo"         Offset="0" BitOffset="0" Text="mDNS" Value="1" />
                 <Parameter Id="%AID%_UP-%TT%00032" Name="HTTP"               ParameterType="%AID%_PT-OnOffYesNo"         Offset="0" BitOffset="1" Text="Weberver" Value="1" /> 
-                <Parameter Id="%AID%_UP-%TT%00033" Name="NTP"                ParameterType="%AID%_PT-OnOffYesNo"         Offset="0" BitOffset="2" Text="Zeitgeber (NTP)" Value="0" /> 
+                <Parameter Id="%AID%_UP-%TT%00033" Name="NTP"                ParameterType="%AID%_PT-OnOffYesNo"         Offset="0" BitOffset="2" Text="NTP-Client" Value="0" /> 
+                <Parameter Id="%AID%_UP-%TT%00034" Name="OTAUpdate"          ParameterType="%AID%_PT-OTAUpdate"          Offset="0" BitOffset="3" Text="OTA-Update" Value="0" />
                 <!-- 5 bits free -->
               </Union>
 
@@ -103,7 +112,7 @@
               <!-- NTP -->
               <Union SizeInBit="408">
                 <Memory CodeSegment="%MID%" Offset="60" BitOffset="0" />
-                <Parameter Id="%AID%_UP-%TT%00061" Name="NTPServer"        ParameterType="%AID%_PT-NTPServer"     Offset="0"  BitOffset="0" Text="NTP Server" Value="pool.ntp.org" />
+                <Parameter Id="%AID%_UP-%TT%00061" Name="NTPServer"        ParameterType="%AID%_PT-NTPServer"     Offset="0"  BitOffset="0" Text="Zeitserver" Value="pool.ntp.org" />
                 <!-- 50 characters + 0 terminator = 51 bytes used -->
               </Union>
 
@@ -114,6 +123,7 @@
               <ParameterRef Id="%AID%_P-%TT%01002_R-%TT%0100200" RefId="%AID%_P-%TT%01002" />
               <ParameterRef Id="%AID%_UP-%TT%00001_R-%TT%0000101" RefId="%AID%_UP-%TT%00001" />
               <ParameterRef Id="%AID%_UP-%TT%00002_R-%TT%0000201" RefId="%AID%_UP-%TT%00002" />
+              <ParameterRef Id="%AID%_UP-%TT%00034_R-%TT%0003401" RefId="%AID%_UP-%TT%00034" />
               <ParameterRef Id="%AID%_P-%TT%00010_R-%TT%0001001" RefId="%AID%_P-%TT%00010" />
               <ParameterRef Id="%AID%_UP-%TT%00011_R-%TT%0001101" RefId="%AID%_UP-%TT%00011" />
               <ParameterRef Id="%AID%_UP-%TT%00012_R-%TT%0001201" RefId="%AID%_UP-%TT%00012" />
@@ -162,36 +172,47 @@
                 </choose>
 
                 <ParameterSeparator Id="%AID%_PS-nnn" Text="Services" UIHint="Headline" />
-                <ParameterRefRef RefId="%AID%_UP-%TT%00031_R-%TT%0003101" IndentLevel="1" HelpContext="NET-mDNS-Service" />
+                <ParameterRefRef RefId="%AID%_UP-%TT%00031_R-%TT%0003101" IndentLevel="1" HelpContext="NET-MDNS" />
                 
                 <!-- HTTP -->
                 <choose ParamRefId="%AID%_P-%TT%01000_R-%TT%0100000">
                   <when test="!=%NET_ServiceHTTP%">
-                    <ParameterRefRef RefId="%AID%_UP-%TT%00032_R-%TT%0003201" IndentLevel="1" />
+                    <ParameterRefRef RefId="%AID%_UP-%TT%00032_R-%TT%0003201" IndentLevel="1" HelpContext="NET-HTTP" />
                   </when>
                 </choose>
 
                 <!-- NTP -->
                 <choose ParamRefId="%AID%_P-%TT%01000_R-%TT%0100000">
                   <when test="!=%NET_ServiceNTP%">
-                    <ParameterRefRef RefId="%AID%_UP-%TT%00033_R-%TT%0003301" IndentLevel="1" />
+                    <ParameterRefRef RefId="%AID%_UP-%TT%00033_R-%TT%0003301" IndentLevel="1" HelpContext="NET-NTP" />
                     <choose ParamRefId="%AID%_UP-%TT%00033_R-%TT%0003301">
                       <when test="0">
                         <Assign TargetParamRefRef="%AID%_UP-1000006_R-100000601" Value="0" />
                       </when>
                       <when test="1">
                         <Assign TargetParamRefRef="%AID%_UP-1000006_R-100000601" Value="1" />
+                        <ParameterRefRef RefId="%AID%_UP-%TT%00061_R-%TT%0006101" IndentLevel="1" HelpContext="NET-NTP" />
                       </when>
                     </choose>
+                  </when>
+                  <when test="%NET_ServiceNTP%">
+                    <Assign TargetParamRefRef="%AID%_UP-1000006_R-100000601" Value="0" />
+                  </when>
+                </choose>
+
+                <!-- OTA -->
+                <choose ParamRefId="%AID%_P-%TT%01000_R-%TT%0100000">
+                  <when test="!=%NET_ServiceOTA%">
+                    <ParameterRefRef RefId="%AID%_UP-%TT%00034_R-%TT%0003401" IndentLevel="1" HelpContext="NET-OTA" />
                   </when>
                 </choose>
 
                 <ParameterSeparator Id="%AID%_PS-nnn" Text="Erweiterte Einstellung" UIHint="Headline" />
                 <!-- Hostname -->
-                <ParameterRefRef RefId="%AID%_UP-%TT%00001_R-%TT%0000101" IndentLevel="1" HelpContext="%DOC%" />
+                <ParameterRefRef RefId="%AID%_UP-%TT%00001_R-%TT%0000101" IndentLevel="1" HelpContext="NET-Hostname" />
                 <choose ParamRefId="%AID%_UP-%TT%00001_R-%TT%0000101">
                   <when test="1">
-                    <ParameterRefRef RefId="%AID%_P-%TT%00010_R-%TT%0001001" IndentLevel="2" HelpContext="%DOC%" />
+                    <ParameterRefRef RefId="%AID%_P-%TT%00010_R-%TT%0001001" IndentLevel="1" HelpContext="NET-Hostname" />
                   </when>
                 </choose>
 
@@ -201,24 +222,14 @@
                     <ParameterRefRef RefId="%AID%_UP-%TT%00052_R-%TT%0005201" IndentLevel="1" HelpContext="%DOC%" />
                   </when>
                 </choose>
+
               </ParameterBlock>
 
               <!-- HTTP -->
               <choose ParamRefId="%AID%_UP-%TT%00032_R-%TT%0003201">
                 <when test="1">
                   <ParameterBlock Id="%AID%_PB-nnn" Name="HTTP" Text="Webserver" Icon="web" HelpContext="NET-Webserver">
-                    <ParameterSeparator Id="%AID%_PS-nnn" Text="Webservereinstellung" UIHint="Headline" />
-                  </ParameterBlock>
-                </when>
-              </choose>
-
-              <!-- NTP -->
-              <choose ParamRefId="%AID%_UP-%TT%00033_R-%TT%0003301">
-                <when test="1">
-                  <ParameterBlock Id="%AID%_PB-nnn" Name="NTP" Text="Zeitgeber" Icon="clock-outline" HelpContext="NET-Zeitgeber">
-                    <ParameterSeparator Id="%AID%_PS-nnn" Text="Zeitgeber (NTP)" UIHint="Headline" />
-                    <!-- NTPServer -->
-                    <ParameterRefRef RefId="%AID%_UP-%TT%00061_R-%TT%0006101" IndentLevel="1" HelpContext="%DOC%" />
+                    <ParameterSeparator Id="%AID%_PS-nnn" Text="Webserver" UIHint="Headline" />
                   </ParameterBlock>
                 </when>
               </choose>

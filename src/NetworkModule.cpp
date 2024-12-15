@@ -435,32 +435,29 @@ void NetworkModule::loop(bool configured)
 
 void NetworkModule::handleOTA()
 {
+    bool allowed = true;
+    if (ParamNET_OTAUpdate == 2) allowed = false;
+    if (ParamNET_OTAUpdate == 0) allowed = knx.progMode();
+
+    if (_otaAllowed != allowed) // allowed changed
+    {
+        _otaAllowed = allowed;
+        if (_otaAllowed)
+    #ifdef ARDUINO_ARCH_ESP32
+            ArduinoOTA.begin();
+    #else
+            ArduinoOTA.begin(false);
+    #endif
+        else
+            ArduinoOTA.end();
+    }
+
     if (_otaAllowed && !_otaHandle)
     {
         _otaHandle = true; // prevent recursion
         ArduinoOTA.handle();
         _otaHandle = false;
     }
-
-    changeOTA(knx.progMode());
-}
-
-void NetworkModule::changeOTA(bool allow)
-{
-    const bool allowed = allow && true; // prepare for UI
-
-    // No change happen
-    if (_otaAllowed == allowed) return;
-
-    _otaAllowed = allowed;
-    if (_otaAllowed)
-    #ifdef ARDUINO_ARCH_ESP32
-        ArduinoOTA.begin();
-    #else
-        ArduinoOTA.begin(false);
-    #endif
-    else
-        ArduinoOTA.end();
 }
 
 IPAddress NetworkModule::GetIpProperty(uint8_t PropertyId)
