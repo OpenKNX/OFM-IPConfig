@@ -30,6 +30,8 @@ In diesem Abschnitt werden die Basiseinstellungen und verfügbaren Dienste festg
 
 In diesem Eingabeformular kannst du entscheiden, ob die IP-Adresse dynamisch durch einen DHCP-Server zugewiesen oder manuell festgelegt werden soll. Bei manueller Konfiguration sind neben der IP-Adresse auch die Netzmaske, ein Standardgateway (Router) und ein Nameserver (DNS) erforderlich.
 
+**Hinweis**: Es wird empfohlen, die DHCP-Einstellungen beizubehalten und stattdessen eine feste IP-Adresse direkt im Router zuzuweisen. Dies liegt daran, dass die Netzwerkeinstellungen nur im programmierten Zustand gelten. Nach einem Update kann das Gerät beispielsweise wieder in den DHCP-Modus wechseln, bis es erneut programmiert wird.
+
 ### **Services**
 
 Hier können die verschiendenen Dienste ein und ausgeschaltet werden.
@@ -89,7 +91,7 @@ Hier kann später der Webserver konfiguriert werden, der dann über den Browser 
 
 Dieser WiFi-Assistent ermöglicht das Übertragen von WiFi-Zugangsdaten auf das Gerät. Voraussetzung ist, dass die verwendete Hardware einen WiFi-Adapter verwendet. Geräte, die per IP-Netzwerk angebunden werden, müssen bereits über eine WiFi-Verbindung und somit über gültige Zugangsdaten verfügen. Der Assistent kann daher nur die bestehenden Zugangsdaten ändern. TP-Geräte können hingegen immer per Bus angepasst werden.
 
-IP-Geräte ohne WiFi-Zugangsdaten müssen initial auf anderem Wege eingerichtet werden. Dies hängt sowohl von der Gerätesoftware als auch der verwendeten Hardware ab. Die Einrichtung per Terminal (USB) sollte immer funktionieren. Dafür muss auf der Konsole nur "wifi SSID PSK" eingegeben werden.
+IP-Geräte ohne WiFi-Zugangsdaten müssen initial auf anderem Wege eingerichtet werden. Dies hängt sowohl von der Gerätesoftware als auch der verwendeten Hardware ab. Die Einrichtung per Terminal (USB) sollte immer funktionieren. Dafür muss auf der Konsole nur `wifi SSID PSK` eingegeben werden.
 
 Bei Geräten auf Arduino-Pico-Basis können die WiFi-Zugangsdaten in der Regel zusätzlich per USB übertragen werden. Dazu muss das Gerät am Rechner angeschlossen und der Transfermodus durch einen Doppelklick auf die Prog-Taste gestartet werden. Kopiere dann eine Datei namens "WIFI.TXT" auf das Wechsellaufwerk. Die erste Zeile muss die SSID und die zweite den PSK enthalten. Danach den Modus wieder mit einem Doppelklick beenden und das Gerät neu starten.
 
