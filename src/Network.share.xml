@@ -148,8 +148,8 @@
             </Script>  
           </Static>
           <Dynamic>
-            <Channel Id="%AID%_CH-%PREFIX%" Number="%PREFIX%" Name="Main" Text="Netzwerk" Icon="ethernet" HelpContext="NET-Netzwerk">
-              <ParameterBlock Id="%AID%_PB-nnn" Name="Basic" Text="Allgemein" Icon="cog-outline" HelpContext="NET-Netzwerk">
+            <Channel Id="%AID%_CH-%PREFIX%" Number="%PREFIX%" Name="Main" Text="Netzwerk" Icon="ethernet" HelpContext="NET-Dokumentation">
+              <ParameterBlock Id="%AID%_PB-nnn" Name="Basic" Text="Allgemein" Icon="cog-outline" HelpContext="NET-Dokumentation">
                 <!-- Hidden -->
                 <ParameterRefRef RefId="%AID%_P-%TT%01000_R-%TT%0100000" />
 
