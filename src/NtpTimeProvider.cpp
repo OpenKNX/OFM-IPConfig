@@ -2,14 +2,14 @@
 
 #ifdef ParamNET_NTP
     #ifdef ARDUINO_ARCH_ESP32
-        #include "lwip/apps/sntp.h"
-        #include <esp_sntp.h>
+        #include "esp_sntp.h"
 
 NtpTimeProvider* NtpTimeProvider::currentInstance = nullptr;
 
 void NtpTimeProvider::logInformation()
 {
     logInfoP("Timeprovider: NTP");
+    logIndentUp();
     switch (sntp_get_sync_status())
     {
         case sntp_sync_status_t::SNTP_SYNC_STATUS_COMPLETED:
@@ -24,9 +24,9 @@ void NtpTimeProvider::logInformation()
     }
     bool serverFound = false;
     bool reachable = false;
-    for (size_t i = 0; sntp_getservername(i); i++)
+    for (size_t i = 0; esp_sntp_getservername(i); i++)
     {
-        if ((int)sntp_getreachability(i))
+        if ((int)esp_sntp_getreachability(i))
             reachable = true;
         serverFound = true;
     }
@@ -34,6 +34,8 @@ void NtpTimeProvider::logInformation()
         logInfoP("NTP Server %s: %s", ParamNET_NTPServer, reachable ? "reachable" : "not reachable or not used");
     else
         logErrorP("No NTP server configured");
+        
+    logIndentDown();
 }
 
 const std::string NtpTimeProvider::logPrefix()
@@ -43,24 +45,26 @@ const std::string NtpTimeProvider::logPrefix()
 
 void NtpTimeProvider::setup()
 {
-    sntp_stop();
+    esp_sntp_stop();
     u8_t index = 0;
     if (strlen((const char*)ParamNET_NTPServer) > 0)
     {
         // Configure the NTP server 3 times because the DNS should be queried multible times to return differnt IP addresses
-        sntp_setservername(index++, (const char*)ParamNET_NTPServer);
-        sntp_setservername(index++, (const char*)ParamNET_NTPServer);
-        sntp_setservername(index++, (const char*)ParamNET_NTPServer);
+        esp_sntp_setservername(index++, (const char*)ParamNET_NTPServer);
+        esp_sntp_setservername(index++, (const char*)ParamNET_NTPServer);
+        esp_sntp_setservername(index++, (const char*)ParamNET_NTPServer);
+
+        // esp_netif_sntp_init(&config);
     }
     if (index > 0)
     {
         currentInstance = this;
-        sntp_set_time_sync_notification_cb([](struct timeval* tv) {
+        esp_sntp_set_time_sync_notification_cb([](struct timeval* tv) {
             currentInstance->timeSet();
         });
-        sntp_set_sync_mode(SNTP_SYNC_MODE_SMOOTH);
-        sntp_setoperatingmode(SNTP_OPMODE_POLL);
-        sntp_init();
+        esp_sntp_set_sync_mode(sntp_sync_mode_t::SNTP_SYNC_MODE_SMOOTH);
+        esp_sntp_setoperatingmode(esp_sntp_operatingmode_t::ESP_SNTP_OPMODE_POLL);
+        esp_sntp_init();
     }
     else
     {
@@ -70,7 +74,7 @@ void NtpTimeProvider::setup()
 
 NtpTimeProvider::~NtpTimeProvider()
 {
-    sntp_stop();
+    esp_sntp_stop();
     currentInstance = nullptr;
 }
 

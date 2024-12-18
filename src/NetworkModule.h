@@ -77,7 +77,7 @@ class NetworkModule : public OpenKNX::Module
     std::string phyMode();
 
 #ifdef ARDUINO_ARCH_ESP32
-    void esp32WifiEvent(WiFiEvent_t event);
+    void esp32NetworkEvent(arduino_event_id_t event);
 #endif
 
   private:

@@ -145,7 +145,7 @@ void NetworkModule::init()
 }
 
     #ifdef ARDUINO_ARCH_ESP32
-void NetworkModule::esp32WifiEvent(WiFiEvent_t event)
+void NetworkModule::esp32NetworkEvent(arduino_event_id_t event)
 {
     switch (event)
     {
@@ -207,7 +207,7 @@ void NetworkModule::initIp()
     logInfoP(_useStaticIP ? "Using static IP" : "Using DHCP");
 
     #ifdef ARDUINO_ARCH_ESP32
-    WiFi.onEvent([](WiFiEvent_t event) -> void { openknxNetwork.esp32WifiEvent(event); });
+    Network.onEvent([](arduino_event_id_t event) -> void { openknxNetwork.esp32NetworkEvent(event); });
 
         #ifdef KNX_IP_WIFI
     KNX_NETIF.config(_staticLocalIP, _staticGatewayIP, _staticSubnetMask, _staticNameServerIP);
