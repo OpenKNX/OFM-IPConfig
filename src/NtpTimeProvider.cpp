@@ -2,6 +2,11 @@
 
 #ifdef ParamNET_NTP
     #ifdef ARDUINO_ARCH_ESP32
+        #if defined(ESP_IDF_VERSION) && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+            #define SNTP_GETREACHABILITY esp_esp_sntp_getreachability
+        #else
+            #define SNTP_GETREACHABILITY sntp_getreachability
+        #endif
         #include "esp_sntp.h"
 
 NtpTimeProvider* NtpTimeProvider::currentInstance = nullptr;
@@ -26,7 +31,7 @@ void NtpTimeProvider::logInformation()
     bool reachable = false;
     for (size_t i = 0; esp_sntp_getservername(i); i++)
     {
-        if ((int)esp_sntp_getreachability(i))
+        if ((int)SNTP_GETREACHABILITY(i))
             reachable = true;
         serverFound = true;
     }
@@ -34,7 +39,7 @@ void NtpTimeProvider::logInformation()
         logInfoP("NTP Server %s: %s", ParamNET_NTPServer, reachable ? "reachable" : "not reachable or not used");
     else
         logErrorP("No NTP server configured");
-        
+
     logIndentDown();
 }
 

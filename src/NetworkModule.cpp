@@ -12,6 +12,14 @@
     #endif
 
     #if defined(ARDUINO_ARCH_ESP32)
+        #if defined(ESP_IDF_VERSION) && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
+            #define CALLBACK_CLASS Network
+            #define CALLBACK_EVENT arduino_event_id_t
+        #else
+            #define CALLBACK_CLASS WiFi
+            #define CALLBACK_EVENT WiFiEvent_t
+        #endif
+
         #if defined(KNX_IP_LAN)
             #include <ETH.h>
             #define KNX_NETIF ETH
@@ -145,7 +153,7 @@ void NetworkModule::init()
 }
 
     #ifdef ARDUINO_ARCH_ESP32
-void NetworkModule::esp32NetworkEvent(arduino_event_id_t event)
+void NetworkModule::esp32NetworkEvent(CALLBACK_EVENT event)
 {
     switch (event)
     {
@@ -207,7 +215,7 @@ void NetworkModule::initIp()
     logInfoP(_useStaticIP ? "Using static IP" : "Using DHCP");
 
     #ifdef ARDUINO_ARCH_ESP32
-    Network.onEvent([](arduino_event_id_t event) -> void { openknxNetwork.esp32NetworkEvent(event); });
+    CALLBACK_CLASS.onEvent([](CALLBACK_EVENT event) -> void { openknxNetwork.esp32NetworkEvent(event); });
 
         #ifdef KNX_IP_WIFI
     KNX_NETIF.config(_staticLocalIP, _staticGatewayIP, _staticSubnetMask, _staticNameServerIP);
