@@ -3,7 +3,7 @@
 #ifdef ParamNET_NTP
     #ifdef ARDUINO_ARCH_ESP32
         #if defined(ESP_IDF_VERSION) && ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 0, 0)
-            #define SNTP_GETREACHABILITY esp_esp_sntp_getreachability
+            #define SNTP_GETREACHABILITY esp_sntp_getreachability
         #else
             #define SNTP_GETREACHABILITY sntp_getreachability
         #endif
