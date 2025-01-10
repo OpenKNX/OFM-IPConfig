@@ -64,6 +64,14 @@ void NetworkModule::initPhy()
 {
     logDebugP("Initialize network adapter");
     logIndentUp();
+    #if defined(PIN_ETH_RES)
+    logDebugP("Resetting Ethernet Phy...");
+    pinMode(PIN_ETH_RES, OUTPUT);
+    digitalWrite(PIN_ETH_RES, LOW);
+    delay(600);
+    digitalWrite(PIN_ETH_RES, HIGH);
+    #endif
+
     #if defined(ETH_SPI_INTERFACE)
     // initalize SPI
     ETH_SPI_INTERFACE.setRX(PIN_ETH_MISO);
