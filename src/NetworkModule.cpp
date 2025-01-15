@@ -649,7 +649,6 @@ void NetworkModule::showHelp()
     #else
     // if (!_useStaticIP) openknx.console.printHelpLine("net renew", "Renew DHCP Address");
     #endif
-    openknx.console.printHelpLine("ota", "Toggle OTA");
 }
 
 // Link status
