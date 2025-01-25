@@ -37,6 +37,10 @@
     #include "UsbExchangeModule.h"
 #endif
 
+#if !defined(OPENKNX_LANSTATUS_LED) && defined(INFO2_LED_PIN) && KNX_SERVICE_FAMILY != 0x02 // IP-Router uses own LED implementation
+    #define OPENKNX_LANSTATUS_LED info2Led
+#endif
+
 typedef std::function<void(bool)> NetworkChangeCallback;
 
 class NetworkModule : public OpenKNX::Module
@@ -92,6 +96,9 @@ class NetworkModule : public OpenKNX::Module
     bool _useMDNS = false;
     bool _otaAllowed = false;
     bool _otaHandle = false;
+#ifdef OPENKNX_LANSTATUS_LED
+    uint8_t _ipLedState = 0;
+#endif
 #ifdef ARDUINO_ARCH_ESP32
     const uint16_t _otaPort = 3232;
     const char *_otaPortString = "3232";
