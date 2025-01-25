@@ -397,16 +397,16 @@ void NetworkModule::checkLinkStatus()
         newLinkState = true;  
     else
         newLinkState = connected();
-#ifdef OPENKNX_LANSTATUS_LED
+#ifdef OPENKNX_IP_LED && OPENKNX_IP_LED != 0
     // update LED's
     if (newLinkState && established())
     {
         if(_ipLedState != 1)
         {
             #ifdef OPENKNX_SERIALLED_ENABLE
-            openknx.OPENKNX_LANSTATUS_LED.setColor(OPENKNX_SERIALLED_COLOR_BLUE);
+            openknx.OPENKNX_IP_LED.setColor(OPENKNX_SERIALLED_COLOR_GREEN);
             #endif
-            openknx.OPENKNX_LANSTATUS_LED.on();
+            openknx.OPENKNX_IP_LED.on();
             _ipLedState = 1;
         }
     }
@@ -415,10 +415,10 @@ void NetworkModule::checkLinkStatus()
         if(_ipLedState != 2)
         {
             #ifdef OPENKNX_SERIALLED_ENABLE
-            openknx.OPENKNX_LANSTATUS_LED.setColor(OPENKNX_SERIALLED_COLOR_YELLOW);
-            openknx.OPENKNX_LANSTATUS_LED.on();
+            openknx.OPENKNX_IP_LED.setColor(OPENKNX_SERIALLED_COLOR_YELLOW);
+            openknx.OPENKNX_IP_LED.on();
             #else
-            openknx.OPENKNX_LANSTATUS_LED.blinking(1000);
+            openknx.OPENKNX_IP_LED.blinking(1000);
             #endif
 
             _ipLedState = 2;
@@ -432,10 +432,10 @@ void NetworkModule::checkLinkStatus()
             if(_ipLedState != 4)
             {
                 #ifdef OPENKNX_SERIALLED_ENABLE
-                openknx.OPENKNX_LANSTATUS_LED.setColor(OPENKNX_SERIALLED_COLOR_RED);
-                openknx.OPENKNX_LANSTATUS_LED.blinking(500);
+                openknx.OPENKNX_IP_LED.setColor(OPENKNX_SERIALLED_COLOR_RED);
+                openknx.OPENKNX_IP_LED.blinking(500);
                 #else
-                openknx.OPENKNX_LANSTATUS_LED.blinking(500);
+                openknx.OPENKNX_IP_LED.blinking(500);
                 #endif
                 _ipLedState = 4;
             }
@@ -445,10 +445,10 @@ void NetworkModule::checkLinkStatus()
         if(_ipLedState != 3)
         {
             #ifdef OPENKNX_SERIALLED_ENABLE
-            openknx.OPENKNX_LANSTATUS_LED.setColor(OPENKNX_SERIALLED_COLOR_RED);
-            openknx.OPENKNX_LANSTATUS_LED.on();
+            openknx.OPENKNX_IP_LED.setColor(OPENKNX_SERIALLED_COLOR_RED);
+            openknx.OPENKNX_IP_LED.on();
             #else
-            openknx.OPENKNX_LANSTATUS_LED.off();
+            openknx.OPENKNX_IP_LED.off();
             #endif
             _ipLedState = 3;
         }
