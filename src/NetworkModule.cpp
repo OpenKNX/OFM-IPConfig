@@ -712,6 +712,11 @@ void NetworkModule::savePower()
     #endif
 }
 
+void NetworkModule::macAddress(uint8_t *addr)
+{
+    KNX_NETIF.macAddress(addr);
+}
+
 bool NetworkModule::restorePower()
 {
     // TODO check all platforms

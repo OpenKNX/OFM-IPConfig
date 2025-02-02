@@ -75,6 +75,7 @@ class NetworkModule : public OpenKNX::Module
     IPAddress gatewayIP();
     IPAddress nameServerIP();
     std::string phyMode();
+    void macAddress(uint8_t *addr);
 
 #ifdef ARDUINO_ARCH_ESP32
     void esp32NetworkEvent(arduino_event_id_t event);
