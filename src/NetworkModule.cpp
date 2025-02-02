@@ -699,6 +699,11 @@ IPAddress NetworkModule::nameServerIP()
     #endif
 }
 
+String NetworkModule::macAddress()
+{
+    return KNX_NETIF.macAddress();
+}
+
 inline std::string NetworkModule::phyMode()
 {
     return "Auto";
